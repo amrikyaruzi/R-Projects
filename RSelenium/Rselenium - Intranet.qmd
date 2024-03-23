@@ -1,0 +1,80 @@
+
+```{r}
+library(wdman)
+library(RSelenium)
+library(rvest)
+library(netstat)
+library(tidyverse)
+```
+
+
+
+```{r}
+selServ <- wdman::selenium(retcommand = TRUE, verbose = FALSE)
+```
+
+
+
+```{r}
+remote_driver <- rsDriver(browser = "chrome", #"firefox"
+                           chromever = "116.0.5845.14", #"latest", #"116.0.5845.141"
+                           verbose = F,
+                           port = 4555L
+                           )
+```
+
+
+
+
+```{r}
+remDr <- remote_driver[["client"]]
+```
+
+
+
+```{r}
+remDr$navigate("http://intranet/") #https://hfrs.moh.go.tz
+```
+
+
+```{r}
+remDr$refresh()
+```
+
+
+```{r}
+webElem <- remDr$findElement(using = 'link text', "QPS")
+webElem$clickElement()
+```
+
+
+```{r}
+search_box <- remDr$findElement(using = 'xpath',
+  '//*[@id="advance_id"]/div/div[2]/div[1]/div[2]/div/div/input')
+
+search_box$clickElement()
+search_box$sendKeysToElement(list('Aga Khan', key = 'enter'))
+```
+
+
+```{r}
+search_button <- remDr$findElement(using = 'xpath',
+  '//*[@id="homeSearch"]')
+search_button$clickElement()
+```
+
+
+```{r}
+remDr$getPageSource() %>% .[[1]] %>% read_html() %>% rvest::html_table()
+```
+
+
+```{r}
+remDr$getPageSource() %>% purrr::flatten_chr() %>% read_html() %>% rvest::html_table()
+```
+
+
+```{r}
+remDr$closeWindow()
+system('taskkill /im java.exe /f')
+```
