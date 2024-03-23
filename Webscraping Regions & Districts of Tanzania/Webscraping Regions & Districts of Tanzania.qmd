@@ -1,0 +1,182 @@
+---
+title: "Webscraping Regions & Districts of Tanzania"
+---
+
+## Part 1: Webscraping
+
+
+```{r}
+library(tidyverse)
+library(rvest)
+library(here)
+library(openxlsx)
+library(ggmap)
+library(mapview)
+```
+
+
+
+
+```{r}
+
+website_url <- "https://mabumbe.com/list-of-districts-in-tanzania-region-wise/"
+
+```
+
+
+
+```{r}
+
+webpage <- read_html(website_url)
+
+```
+
+
+
+```{r}
+
+regions <- webpage %>% html_nodes("h2") %>% html_text() %>% 
+  gsub(pattern = " Region", replacement = "", x = .)
+
+print(regions)
+
+```
+
+
+```{r}
+
+districts <- webpage %>% html_elements(css = "p~ul") %>% html_text() %>%
+  gsub(pattern = "\\n", replacement = "; ", x = .) %>%
+  gsub(pattern = "; $", replacement = "", x = .) %>%
+  gsub(pattern = "\\[\\d]?", replacement = "", x = .)
+
+print(districts)
+
+```
+
+
+
+```{r}
+
+data1 <- data %>% separate_rows(Districts, sep = ";") %>% separate_rows(Districts, sep = "&")
+
+```
+
+
+
+
+```{r}
+
+data1 <- data1 %>% mutate(Districts = gsub(pattern = ",", replacement = "", x = Districts))
+data1 <- data1 %>% mutate(Districts = str_trim(Districts))
+
+
+data2 <- data1 %>% mutate(district_new = gsub(pattern = "\\d?", replacement = "", x = Districts),
+                          district_new = gsub(pattern = "Council.*", replacement = "Council", x = district_new))
+
+data2 <- data2 %>% select(-Districts, District = district_new)
+
+```
+
+
+
+```{r Cleaning up the environment}
+
+rm(list = setdiff(ls(), "data2"))
+
+```
+
+
+
+## Part 2: Geocoding
+
+```{r}
+
+register_google(key = "AIzaSyC3AxkOfxkrwFvVQZUi2yCcl_gpsO8XjtI", write = TRUE)
+
+```
+
+
+
+
+```{r}
+
+data2 <- data2 %>% mutate_geocode(location = District, output = "latlona")
+
+```
+
+
+
+```{r}
+
+data3 <- data2 %>% filter(is.na(lon))
+
+
+```
+
+
+
+
+```{r}
+
+data3 <- data3 %>% mutate(distr = str_replace_all(District, "(\\w*)\\s(\\w*)\\s*(\\w*)", "\\1 \\2"),
+                          regio = str_replace_all(Regions, "(\\w+)(\\s)Region\\.*", "\\1"),
+                          
+                          full_name = str_c(distr, regio, sep = ", "),
+                          full_name = str_replace_all(pattern = " of ", replacement = ", ", string = full_name))
+
+
+```
+
+
+
+
+```{r}
+
+data3 <- data3 %>% mutate_geocode(location = full_name, output = "latlona")
+  
+```
+
+
+
+```{r}
+
+data2 <- data2 %>% filter(!is.na(lon))
+data2 <- rbind(data2, data3[,-c(3)])
+
+```
+
+
+
+```{r}
+
+data2 <- data2 %>% distinct(Regions, District, .keep_all = TRUE)
+
+```
+
+
+
+```{r}
+
+#For Songwe region, from google: Latitude:-14.083333: Songwe Longitude: 34.933333
+
+data2 <- data2 %>% mutate(lon = case_when(District == "Songwe District" ~ 34.93333,
+                                 TRUE ~ lon),
+                 
+                          lat = case_when(District == "Songwe District" ~ -14.083333,
+                                 TRUE ~ lat),
+                          
+                          address = case_when(District == "Songwe District" ~ "songwe, tanzania",
+                                 TRUE ~ address)
+                          )
+
+```
+
+
+
+
+```{r}
+
+mapview(data2, xcol = "lon", ycol = "lat", crs = 4269, grid = FALSE)
+
+```

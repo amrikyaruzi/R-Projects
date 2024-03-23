@@ -1,0 +1,74 @@
+// Place your key bindings in this file to override the defaultsauto[]
+[
+    
+    {
+        "key": "ctrl+shift+m",
+        "command": "type",
+        "when": "editorLangId == r && editorTextFocus",
+        "args": {"text": " %>% "}
+    },
+    {
+        "key": "ctrl+shift+m",
+        "command": "workbench.action.terminal.sendSequence",
+        "when": "terminalFocus",
+        // "when": "editorLangId == r && terminalFocus",  // maybe you want this?
+        "args": {"text": " %>% "}
+    },
+    {
+        "key": "alt+-",
+        "command": "type",
+        "when": "editorLangId == r && editorTextFocus",
+        "args": {"text": " <- "}
+    },
+    {
+        "key": "alt+-",
+        "command": "workbench.action.terminal.sendSequence",
+        "when": "terminalFocus",
+        // "when": "editorLangId == r && terminalFocus",  // maybe you want this?
+        "args": {"text": " <- "}
+    },
+    {
+        "key": "alt+-",
+        "command": "workbench.action.terminal.sendSequence",
+        //"when": "terminalFocus",
+        "when": "editorLangId == r && terminalFocus",  // maybe you want this?
+        "args": {"text": " <- "}
+    },
+    {
+        "key": "ctrl+shift+p",
+        "command": "workbench.actions.view.problems",
+        "when": "workbench.panel.markers.view.active"
+    },
+    {
+        "key": "ctrl+shift+m",
+        "command": "-workbench.actions.view.problems",
+        "when": "workbench.panel.markers.view.active"
+    },
+    {
+        "key": "ctrl+shift+m",
+        "command": "type",
+        "when": "resourceExtname == .qmd && editorTextFocus",
+        "args": {"text": " %>% "}
+    },
+    {
+        "key": "alt+-",
+        "command": "type",
+        "when": "resourceExtname == .qmd && editorTextFocus",
+        "args": {"text": " <- "}
+    },
+    {
+        "key": "ctrl+shift+m",
+        "command": "type",
+        "when": "resourceExtname == .qmd",
+        "args": {"text": " %>% "}
+    },
+    {
+        "key": "alt+-",
+        "command": "type",
+        "when": "resourceExtname == .qmd",
+        "args": {"text": " <- "}
+    }
+]
+
+
+//website & Part: https://code.visualstudio.com/docs/getstarted/keybindings#_when-clause-contexts

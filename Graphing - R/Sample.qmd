@@ -1,0 +1,63 @@
+
+```{r}
+
+library(tidyverse)
+
+```
+
+
+
+
+```{r}
+
+data <- openxlsx::read.xlsx("C:/Users/amri.kyaruzi/OneDrive - Aga Khan Health Service, Tanzania/Documents/Work/Projects/Webscraping Regions & Districts of Tanzania/Output/Geocoded Tanzanian Districts.xlsx")
+
+```
+
+
+
+
+```{r}
+
+tanzania_map <- map_data("world", "tanzania")
+
+```
+
+
+
+
+```{r}
+
+#colnames(data)
+
+ggplot(data = tanzania_map, aes(x = long, y = lat, map_id = region)) +
+  geom_map(map = tanzania_map, fill = NA, color = "black") +
+  theme(panel.background = element_rect(fill = "white"),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank())
+
+
+```
+
+
+
+```{r}
+
+ggplot(data = data, aes(x = lon, y = lat)) +
+  
+  geom_point() +
+  
+  geom_map(data = tanzania_map, aes(x = long, y = lat, map_id = region),
+           map = tanzania_map,
+           fill = NA, color = "black") +
+  
+  theme(panel.background = element_rect(fill = "white"),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank())
+
+```
+

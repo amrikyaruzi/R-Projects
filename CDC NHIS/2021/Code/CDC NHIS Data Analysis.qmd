@@ -1,0 +1,44 @@
+---
+output-folder: "2021/Output"
+title: "CDC NHIS Data Analysis"
+author: "Dr. A. K. Ishengoma"
+date: today
+date-format: long
+format: pdf
+editor: visual
+execute: 
+  echo: false
+  warning: false
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+library(tidyverse)
+library(gt)
+library(gtExtras)
+library(here)
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+data <- read_csv(here("2021/Data/adult21csv/adult21.csv"), guess_max = 8261)
+```
+
+The table below shows 10 Columns with the most Missing values on the 2021 CDC NHIS dataset:
+
+```{r missing_data_statistic, echo=FALSE, results='asis'}
+
+data %>% summarise(across(.cols = everything(), ~sum(is.na(.)))) %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "missing") %>%
+  mutate(perc_missing = 100*missing/nrow(data)) %>%
+  mutate_at("perc_missing", ~janitor::round_half_up(., digits = 1)) %>%
+  arrange(desc(perc_missing)) %>%
+  head(10) %>%
+  gt() %>%
+  gt::tab_caption("10 columns with the most missing values") %>% 
+  cols_label(variable = "Variable", missing = "Missing (n)", perc_missing = "Missing (%)") %>%
+  tab_spanner(columns = c(missing, perc_missing), label = "Missing Values") %>%
+  gt_theme_nytimes()
+
+```

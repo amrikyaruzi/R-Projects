@@ -1,0 +1,215 @@
+
+```{r}
+
+library(tidyverse)
+library(broom)
+library(sf)
+library(rgdal)
+
+```
+
+
+
+
+```{r}
+
+data <- openxlsx::read.xlsx("C:/Users/amri.kyaruzi/OneDrive - Aga Khan Health Service, Tanzania/Documents/Work/Projects/Webscraping Regions & Districts of Tanzania/Output/Geocoded Tanzanian Districts.xlsx")
+
+```
+
+
+
+
+```{r}
+
+tanzania_map <- map_data("world", "tanzania")
+
+```
+
+
+
+
+```{r}
+
+#colnames(data)
+
+ggplot(data = tanzania_map, aes(x = long, y = lat, map_id = region)) +
+  geom_map(map = tanzania_map, fill = NA, color = "black") +
+  theme(panel.background = element_rect(fill = "white"),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank())
+
+
+```
+
+
+
+```{r}
+
+ggplot(data = data, aes(x = lon, y = lat)) +
+  
+  geom_point() +
+  
+  geom_map(data = tanzania_map, aes(x = long, y = lat, map_id = region),
+           map = tanzania_map,
+           fill = NA, color = "black") +
+  
+  theme(panel.background = element_rect(fill = "white"),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank())
+
+```
+
+
+
+```{r}
+
+#system("unzip C:/Users/amri.kyaruzi/Downloads/gadm41_TZA_shp.zip")
+
+```
+
+
+
+
+```{r warning=False using_rgdal}
+
+my_spdf <- readOGR(
+  dsn = "C:/Users/amri.kyaruzi/Downloads/GADM/gadm41_TZA_shp",
+  layer = "gadm41_TZA_3",
+  verbose = FALSE)
+
+```
+
+
+
+
+```{r}
+
+my_spdf1 <- "C:/Users/amri.kyaruzi/Downloads/GADM/gadm41_TZA_shp" %>%
+  list.files(pattern = "shp$", full.names = TRUE) %>% map_df(read_sf)
+
+```
+
+
+
+
+```{r}
+
+length(my_spdf)
+head(my_spdf)
+summary(my_spdf)
+
+```
+
+
+
+
+```{r}
+
+
+spdf_fortified <- tidy(my_spdf, region = "NAME_1")
+
+
+```
+
+
+
+
+```{r}
+
+ggplot() +
+  geom_polygon(data = spdf_fortified1 %>% filter(id == "Dar es Salaam"),
+               aes( x = long, y = lat, group = group),
+               #fill="#69b3a2", color="white"
+               fill = "white", color = "black") +
+  theme_void()
+
+```
+
+
+
+
+```{r}
+
+tz <- read_sf("C:/Users/amri.kyaruzi/OneDrive - Aga Khan Health Service, Tanzania/Documents/Work/Projects/Graphing - R/NBS Data/Districts_Shapefiles_2019/Districts and TC as 2020.shp")
+
+
+```
+
+
+
+```{r}
+tz_1 <- as(tz, "Spatial")
+tz_data <- tidy(tz_1, region = "Region_Nam")
+```
+
+
+
+```{r}
+ggplot() +
+  geom_polygon(data = tz_data %>% filter(id == "Dar-es-salaam"),
+               aes( x = long, y = lat, group = group),
+               #fill="#69b3a2", color="white"
+               fill = "white", color = "black") +
+  theme_void()
+```
+
+```{r}
+
+tz_1 <- read_sf(dsn = "C:/Users/amri.kyaruzi/OneDrive - Aga Khan Health Service, Tanzania/Documents/Work/Projects/Graphing - R/NBS Data/Districts_Shapefiles_2019/Districts and TC as 2020.shp") %>% as(., "Spatial")
+
+tz_data <- tidy(tz_1, region = "NewDist20")
+tz_data_new <- tz_data %>% filter(id %in% c("Ilala MC", "Temeke MC", "Kinondoni MC", "Kigamboni MC", "Ubungo MC"))
+
+
+```
+
+
+
+
+```{r}
+ggplot(data = tz_data_new,
+               aes( x = long, y = lat, group = group),
+               #fill="#69b3a2", color="white"
+               ) +
+  
+  geom_polygon(fill = "white", color = "black") +
+  
+  theme_void()
+```
+
+
+
+```{r best way - perhaps}
+
+tz$NewDist20 <- gsub(pattern = " MC", replacement = "", x = tz$NewDist20)
+
+tz %>% filter(Region_Nam %in% c("Dar-es-salaam")) %>%
+  #gsub(pattern = " MC", replacement = "", x = NewDist20) %>% 
+  
+  ggplot(.) + 
+  
+  geom_sf(aes(fill = NewDist20), show.legend = FALSE) +
+  
+  geom_sf_label(aes(label = NewDist20), label.padding = unit(1, "mm")) +
+  
+  labs(title = "Districts of Dar es Salaam",
+       x = "\nLongitude",
+       y = "Latitude\n") +
+  
+  theme(panel.background = element_rect(fill = "white"),
+        plot.title = element_text(hjust = 0.5),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        #axis.text = element_blank(),
+        #axis.title = element_blank()
+        )
+  #theme_void()
+  
+
+```
+

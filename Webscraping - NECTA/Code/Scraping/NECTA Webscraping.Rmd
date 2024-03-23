@@ -1,0 +1,102 @@
+---
+title: "NECTA Webscraping"
+output: html_notebook
+---
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(rvest)
+library(glue)
+
+```
+
+
+
+```{r}
+website_link <- "https://matokeo.necta.go.tz/csee2022/index.htm"
+```
+
+
+
+```{r}
+all_schools <- website_link %>% read_html(.) %>% html_table()
+all_schools <- all_schools[[3]]
+
+```
+
+
+
+```{r}
+all_schools <- c(all_schools$X1, all_schools$X2, all_schools$X3) %>% as_tibble()
+
+all_schools <- all_schools %>% mutate(number = str_replace_all(string = value, pattern = "([SP]\\d{4})\\s(.*)", replacement = "\\1"),
+                                      name = str_replace_all(string = value, pattern = "([SP]\\d{4})\\s(.*)", replacement = "\\2"))
+
+all_schools <- all_schools %>% select(-value) %>% filter(name != "")
+```
+
+
+
+```{r}
+links_attachments <- website_link %>% read_html(.) %>% html_elements("a") %>% html_attr(name = "href") %>%
+  str_extract(., pattern = "results\\\\s\\d{4}\\.htm") %>% na.omit()
+
+links_attachments <- links_attachments %>% str_replace(string = ., pattern = "\\\\", replacement = "\\/")
+```
+
+
+
+```{r}
+iter_link <- "https://matokeo.necta.go.tz/csee2022/{number}"
+```
+
+
+
+```{r}
+school_link <- glue("https://matokeo.necta.go.tz/csee2022/{links_attachments[1]}")
+
+```
+
+
+
+```{r}
+#tables <- school_link %>% read_html() %>% html_elements("table") %>% html_table() #same as the two below
+
+tables <- school_link %>% read_html() %>% html_elements("table")
+subjects_table <- tables[[9]] %>% html_table()
+
+
+#tables[[5]] %>% html_elements("p") # for region
+region <- tables[[5]] %>% html_elements("td") %>% html_text() %>% .[2]
+
+#overall gpa
+gpa <- tables[[5]] %>% html_elements("tr") %>% html_text(trim = TRUE) %>% .[2] %>%
+  gsub(x = ., pattern = "\\w+.*\\\r\\\n(.+))", replacement = "\\1") %>%
+  gsub(x = ., pattern = "\\(", replacement = "")
+```
+
+
+
+```{r}
+colnames(subjects_table) <- c("CODE", "SUBJECT NAME", "REG", "SAT", "NO-CA", "W/HD", "CLEAN", "PASS", "GPA", "COMPETENCY LEVEL")
+```
+
+
+
+```{r}
+subjects_table_wider <- subjects_table %>% select(`SUBJECT NAME`, GPA) %>% pivot_wider(names_from = `SUBJECT NAME`,
+                                                       values_from = GPA)
+
+subjects_table_wider$number <- school_link
+subjects_table_wider$region <- region
+subjects_table_wider$`OVERALL GPA` <- gpa
+
+subjects_table_wider <- subjects_table_wider %>% relocate(number, region, .before = everything()) %>%
+  relocate(`OVERALL GPA`, .after = region)
+subjects_table_wider <- subjects_table_wider %>% mutate(number = str_replace_all(string = number, pattern = ".*(s\\d{4})\\.htm", replacement = "\\1"),
+                                                        number = str_to_upper(number))
+
+subjects_table_wider <- subjects_table_wider %>% inner_join(all_schools) %>% relocate(name, .after = number)
+
+```
+

@@ -1,0 +1,153 @@
+---
+title: "NECTA Form 4 2022 Results - Top 10 Schools for each Subject"
+subtitle: '*(Subjects attempted by 1 school only were excluded)*'
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(knitr)
+library(tidyverse)
+library(gt)
+library(gtExtras)
+library(broom)
+
+```
+
+
+
+```{r}
+data <- openxlsx::read.xlsx(here::here("./Output/1. Scraping Results/Final - NECTA 2022 Data.xlsx"))
+colnames(data) <- colnames(data) %>% gsub(pattern = "\\.", replacement = " ")
+
+data <- data %>% relocate(`OVERALL RANK`, NUMBER, NAME:`OVERALL RATING`, CIVICS, HISTORY, GEOGRAPHY, KISWAHILI, `ENGLISH LANGUAGE`, `BASIC MATHEMATICS`, BIOLOGY, PHYSICS, CHEMISTRY, COMMERCE, `BOOK-KEEPING`, .before = everything())
+data1 <- data %>% pivot_longer(cols = -c(`OVERALL RANK`:`OVERALL RATING`), names_to = "SUBJECT", values_to = "GPA")
+
+data1 <- data1 %>% mutate(SUBJECT = gsub(SUBJECT, pattern = "&", replacement = "AND"))
+
+data1 <- data1 %>% filter(!is.na(GPA))
+
+```
+
+
+
+```{r for_loop_way,  results='asis'}
+# subjects <- unique(data1$SUBJECT)
+# 
+# for(subject in subjects){
+# 
+#   if((data1 %>% filter(SUBJECT == subject) %>% nrow()) < 2){
+# 
+#     next
+#   }
+# 
+# data1 %>% filter(SUBJECT == subject) %>%
+#   arrange(GPA) %>% mutate(`SUBJECT RANK` = min_rank(GPA)) %>% filter(`SUBJECT RANK` <= 10) %>%
+#   select(`SUBJECT RANK`, NUMBER:REGION, `SUBJECT GPA` = GPA, `OVERALL GPA`:`OVERALL RANK`) %>%
+#   gt(caption = paste("SUBJECT: ", subject)) %>%
+#   cols_label(NAME = "SCHOOL NAME", NUMBER = "EXAMINATION NUMBER") %>% cols_align(align = "center") %>%
+#   tab_spanner(label = "SCHOOL'S OVERALL PERFORMANCE",
+#               columns = c(`OVERALL GPA`, `OVERALL GRADE`, `OVERALL RATING`, `OVERALL RANK`)) %>%
+#   #gt_theme_nytimes()  %>%
+#   print()
+# 
+# #`******` #Markdown page break
+# #`------` #Markdown page break
+# #cat("\\pagebreak") #HTML. Not very useful
+# cat("<br>") #HTML. Works (line break)
+# cat("<br>")
+# 
+#   }
+
+```
+
+
+
+```{r purrr_way, results='asis'}
+# Filtered dataset (purrr can't do if next blocks)
+
+filter_out <- data1 %>% count(SUBJECT) %>% filter(n < 2) %>% select(SUBJECT) %>% as_vector() %>% setNames(NULL)
+data2 <- data1 %>% filter(!SUBJECT %in% filter_out)
+
+
+# 'Iterator' & function
+subjects <- unique(data2$SUBJECT)
+
+
+create_table <- function(subject){
+
+
+   data2 %>% filter(SUBJECT == subject) %>%
+  arrange(GPA) %>% mutate(`SUBJECT RANK` = min_rank(GPA)) %>% filter(`SUBJECT RANK` <= 10) %>%
+  select(`SUBJECT RANK`, NUMBER:REGION, `SUBJECT GPA` = GPA, `OVERALL GPA`:`OVERALL RANK`) %>%
+  gt(caption = paste("SUBJECT: ", subject)) %>%
+  cols_label(NAME = "SCHOOL NAME", NUMBER = "EXAMINATION NUMBER") %>% cols_align(align = "center") %>%
+  tab_spanner(label = "SCHOOL'S OVERALL PERFORMANCE",
+              columns = c(`OVERALL GPA`, `OVERALL GRADE`, `OVERALL RATING`, `OVERALL RANK`)) %>%
+    #gtExtras::gt_theme_nytimes()  %>% #bstfun::as_ggplot(zoom = 10) %>%
+    print()
+
+#cat("<br>") #HTML. Works (line break)
+#cat("<br>")
+cat("\\pagebreak")
+
+  }
+
+
+# Iteration
+walk(subjects, ~create_table(.))
+
+```
+
+
+## Linear model
+### Confirming type fo columns to be numeric - for all columns
+```{r}
+
+data %>% select(`OVERALL GPA`, CIVICS:last_col()) %>% map_df(.x = ., .f = class) %>% pivot_longer(data = ., cols = everything(), names_to = "Column", values_to = "Type") %>% distinct(Type)
+
+```
+
+
+## 
+```{r}
+model_data <- data %>% select(`OVERALL GPA`, CIVICS:last_col())
+model_data_minimal <- model_data %>%
+  select(`OVERALL GPA`, CIVICS, HISTORY, GEOGRAPHY, KISWAHILI, `ENGLISH LANGUAGE`, `BASIC MATHEMATICS`, BIOLOGY, PHYSICS, CHEMISTRY, `BOOK-KEEPING`, COMMERCE)
+
+```
+
+
+```{r linear_regression}
+
+model_glance <- set_names(names(model_data_minimal[-1])) %>% 
+  map_dfr(~glance(lm(as.formula(paste("overall_gpa ~ ", .x)), data = model_data_minimal)),
+          .id = "predictor")
+
+model_normal <- set_names(names(model_data_minimal[-1])) %>% 
+  map_dfr(~tidy(lm(as.formula(paste("overall_gpa ~ ", .x)), data = model_data_minimal),
+                conf.int = TRUE),
+          .id = "predictor")
+
+#broom::tidy(model)
+
+#gtsummary::tbl_regression(model)
+```
+
+
+
+```{r multiple_linear_regression}
+
+model_ml <- lm(data = model_data_minimal, formula = overall_gpa ~ .) %>% summary() %>% tidy()
+```
+
+
+

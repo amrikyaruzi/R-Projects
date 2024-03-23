@@ -1,0 +1,118 @@
+---
+####################
+## Metadata       ##
+####################
+doctitle: |
+  `iheiddown`: \
+  A Thesis Template \
+  For the Geneva Graduate Institute \
+  in R Markdown
+firstnames: Author
+lastnames: Name
+thesisno: 12345
+phd: true # Or: false for Masters
+department: Your Department
+degreedate: June 2020
+supervisor: Gandalf the Grey
+secondreader: Galadriel
+examiner: Aragorn II Elessar # only required if PhD; otherwise delete or comment out
+# This is the YAML (YAML Ain't Markup Language) header that includes 
+# metadata used to produce the document. 
+# Be careful with spacing in this header!
+# Two spaces at the start of the line create indentation,
+# which embeds the parameter in a hierarchy.
+
+####################
+## Front Matter   ##
+####################
+dedication: For you #If you'd prefer to not include a Dedication, for example, simply delete the section entirely, or silence them (add # before each line). 
+resume: | # otherwise known as the abstract
+  `r paste(readLines("front-matter/_abstract.Rmd"), collapse = '\n  ')`
+acknowledgements: |
+  `r paste(readLines("front-matter/_acknowledgements.Rmd"), collapse = '\n  ')`
+abbreviations: "front-matter/abbreviations" # path to .tex file with abbreviations
+toc-depth: 2 # depth of heading to include in table of contents
+lof: true # list of figures in front matter?
+lot: true # list of tables in front matter?
+mini-toc: false  # mini-table of contents at start of each chapter? (this just prepares it; you must also add \minitoc after the chapter titles)
+mini-lot: false  # mini-list of tables by start of each chapter?
+mini-lof: false  # mini-list of figures by start of each chapter?
+
+####################
+## Bibliography   ##
+####################
+bibliography: bib/references.bib #Set your bibliography file here.
+bibliography-heading-in-pdf: References
+bib-style: authoryear # See https://www.overleaf.com/learn/latex/biblatex_citation_styles for a list of the commonly used built-in citations styles of biblatex.
+bib-sorting: nyt #See https://www.overleaf.com/learn/latex/Articles/Getting_started_with_BibLaTeX for different bibliography sorting options.
+citeall: true #Set this to true if you want all elements in your .bib file to appear in your bibliography (i.e. all R-packages you used).
+
+#####################
+## PDF Formatting  ##
+#####################
+draft: false # add DRAFT mark in the footer and line numbering?
+page-layout: oneside #'oneside' for PDF output (equal margins), 
+# or 'twoside' for two-sided binding (mirror margins and blank pages) 
+hidelinks: false #if false, the PDF output highlights clickable links with a colored border 
+# you will probably want to set this to true for PDF version you wish to physically print
+knit: iheiddown::thesis_pdf
+#####################
+## Output Options  ##
+#####################
+output: iheiddown::thesis_pdf
+link-citations: true
+documentclass: book
+---
+
+# Preface {.unnumbered}
+
+<!-- 
+The {.unnumbered} option here means that the introduction will be 
+"Chapter 0." You can also use {-} for no numbers on chapters.
+-->
+
+<!-- This chunk creates automatically a .bib file to cite the loaded packages in the bibliography. Do not forget to set "citeall" to true in the bibliography section of the YAML header if you want all packages to be cited even if you did not mention them in the body of the text.-->
+
+```{r, include=FALSE}
+knitr::write_bib(c(.packages(), "bookdown"), "bib/packages.bib")
+```
+
+
+Welcome to the *RMarkdown* template for writing masters theses or PhD dissertations 
+at the Geneva Graduate Institute. 
+This sample content is based on the [IHEID  LaTeX dissertation template](https://github.com/jhollway/iheidmytex) and the R `bookdown` package.
+
+But hopefully it will provide a nicer interface for those that have never used \TeX\ or \LaTeX\ before.
+
+Using _R Markdown_ will also allow you to easily keep track of your analyses in **R** chunks of code, 
+with the resulting plots and output included as well.  
+The hope is this _R Markdown_ template gets you in the habit of doing reproducible research, 
+which benefits you long-term as a researcher, 
+but also will greatly help anyone that is trying to reproduce or build onto your results down the road.
+
+Hopefully, you won't have much of a learning period to go through and you will reap the benefits of a nicely formatted thesis.  
+The use of \LaTeX\ in combination with _Markdown_ is more consistent than the output of a word processor, 
+much less prone to corruption or crashing, 
+and the resulting file is smaller than a Word file. 
+While you may have never had problems using Word in the past, 
+your thesis is likely going to be about twice as large and complex as anything you've written before, taxing Word's capabilities.  
+After working with _Markdown_ and **R** together for a few weeks, 
+we are confident this will be your reporting style of choice going forward.
+
+## Why use it? {-}
+
+_RMarkdown_ creates a simple and straightforward way to interface with the beauty of \LaTeX\.  
+Packages have been written in **R** to work directly with \LaTeX\ to produce nicely formatting tables and paragraphs. 
+In addition to creating a user friendly interface to \LaTeX\, _RMarkdown_ also allows you to read in your data, to analyze it and to visualize it using **R** functions, and also to provide the documentation and commentary on the results of your project.  
+Further, it allows for **R** results to be passed inline to the commentary of your results.  
+You'll see more on this later.  
+
+## Who should use it? {-}
+
+Anyone who needs to analyses data, include lots of tables or figures, complex cross-references, mathematical equations,
+or just cares about the final appearance of their document should use *RMarkdown*.
+Therefore, while this template should be of particular interest to those planning to use **R** for their dissertations,
+the user-friendly nature of writing _Markdown_ 
+coupled with the extraordinary flexibility of \LaTeX\
+(and the power of **R**)
+should make *useful for everyone writing theses or dissertations at the Geneva Graduate Institute*.

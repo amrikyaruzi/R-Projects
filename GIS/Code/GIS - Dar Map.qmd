@@ -1,0 +1,125 @@
+---
+title: "GIS - Dar Map"
+author: "Dr Amri Kyaruzi Ishengoma"
+format: docx
+editor: visual
+---
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(sf)
+library(here)
+
+library(broom)
+#library(rgdal)
+```
+
+
+```{r echo=FALSE}
+tz <- read_sf("../Data/From NBS/Districts_Shapefiles_2019/Districts and TC as 2020.shp")
+```
+
+
+
+```{r echo=FALSE}
+tz$NewDist20 <- gsub(pattern = " MC", replacement = "", x = tz$NewDist20)
+#tz$NewDist20 <- gsub(pattern = " DC", replacement = "", x = tz$NewDist20)
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+
+tz %>% filter(Region_Nam %in% c("Dar-es-salaam")) %>%
+  
+  ggplot(.) + 
+  
+  geom_sf(aes(fill = NewDist20), show.legend = FALSE) +
+  
+  #geom_sf_label(aes(label = NewDist20), label.padding = unit(1, "mm")) + 
+  
+  #use the above if you'd like to do labels
+  
+  geom_sf_text(aes(label = NewDist20), size = 3.5) +
+  
+  labs(title = "Districts of the selected Regions",
+       x = "\nLongitude",
+       y = "Latitude\n") +
+  
+  theme(panel.background = element_rect(fill = "white"),
+        plot.title = element_text(hjust = 0.5),
+        axis.line = element_blank(),
+        axis.ticks = element_blank())
+
+```
+
+```{r}
+
+tz %>% filter(Region_Nam %in% c("Dar-es-salaam", "Morogoro", "Pwani")) %>%
+  
+  ggplot(.) + 
+  
+  geom_sf(aes(fill = NewDist20), show.legend = FALSE) +
+  
+  #geom_sf_label(aes(label = NewDist20), label.padding = unit(1, "mm")) + 
+  
+  #use the above if you'd like to do labels
+  
+  geom_sf_text(aes(label = NewDist20), size = 3.5) +
+  
+  labs(title = "Districts of Dodoma",
+       x = "\nLongitude",
+       y = "Latitude\n") +
+  
+  theme(panel.background = element_rect(fill = "white"),
+        plot.title = element_text(hjust = 0.5),
+        axis.line = element_blank(),
+        axis.ticks = element_blank())
+
+
+```
+
+
+## Research data map
+
+```{r}
+
+map_points <- read.csv("C:/Users/amri.kyaruzi/OneDrive - Aga Khan Health Service, Tanzania/Documents/Work/Projects/1. Personal/R/Geocoding/Health facilities geocoding data.csv")
+
+map_points <- map_points %>% mutate(Address = gsub(x = Address, pattern = "Center", replacement = "Centre"),
+                                    Address = gsub(x = Address, pattern = "Health Centre", replacement = "HC"),
+                                    Address = gsub(x = Address, pattern = "Regional Referral Hospital", replacement = "RRH"))
+
+```
+
+
+
+```{r}
+facilities_map <- ggplot() +
+  
+  geom_sf(data = tz %>% filter(Region_Nam %in% c("Dar-es-salaam") & NewDist20 %in% c("Ilala", "Temeke")),
+          aes(fill = NewDist20, geometry = geometry)) + 
+  
+  geom_point(data = map_points, aes(x = lon, y = lat), size = 2.4) + 
+  
+  ggrepel::geom_text_repel(data = map_points, aes(x = lon, y = lat, label = Address),
+                           box.padding = 0.5, max.overlaps = Inf) +
+  
+  theme_minimal() +
+  
+  theme(plot.title.position = "plot",
+        plot.title = #element_text(hjust = 0.5)
+          element_blank()) +
+  
+  labs(title = "Health facilities from which study participants were selected",
+             x = "\nLongitude", y = "\nLatitude\n") +
+  
+  guides(fill = guide_legend(title = "District/ Municipality"))
+
+```
+
+
+
+```{r}
+ggsave("myplot.png", plot = facilities_map, width = 8, height = 8)
+```
+

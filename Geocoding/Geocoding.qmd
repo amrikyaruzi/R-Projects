@@ -1,0 +1,89 @@
+---
+title: "Geocoding"
+---
+
+Geocoding within R Tell ggmap about the API key using the register_google() function. Use the 'write = TRUE' argument if you want to store the key globally in R, not just for this session.
+
+```{r}
+
+library(ggmap)
+#library(mapview)
+library(ggplot2)
+library(sf)
+
+```
+
+
+
+
+```{r}
+
+register_google(key = "AIzaSyC3AxkOfxkrwFvVQZUi2yCcl_gpsO8XjtI", write = TRUE)
+
+```
+
+Use mutate_geocode() to create a new data frame with added columns for latitude and longitude coordinates (output = "latlon" argument). output = "latlona" returns latitude, longitude, and the matched address (to cross-check against your address) as new columns.
+
+mutate_geocode(\[data frame\], location = \[field with address\], output = "latlona")
+
+Example:
+
+```{r}
+
+addr <- data.frame(Address = c("4000 mayflower Hill, Waterville, Maine", 
+                               "2 Andrews Rd, Lewiston, ME 04240",
+                               "255 Maine St, Brunswick, ME 04011",
+                               "90 Quaker Hill Rd, Unity, ME 04988",
+                               "105 Eden St, Bar Harbor, ME 04609"),
+                   College = c("Colby", "Bates", "Bowdoin", "Unity", "CoA"),
+                   stringsAsFactors = FALSE)
+addr.geo <- mutate_geocode(addr, location = Address, output = "latlona")
+View(addr.geo)
+mapview(addr.geo, xcol = "lon", ycol = "lat", crs = 4269, grid = FALSE)
+
+```
+
+
+
+
+```{r}
+
+addr2 <- data.frame(Address = c("Chanika Health Center, Dar es Salaam",
+                                "The Aga Khan Hospital, Dar es Salaam",
+                                "Ebrahim Haji Charitable Health Centre, Dar es Salaam",
+                                "Amana Regional Referral Hospital, Dar es Salaam",
+                                "Temeke Regional Referall Hospital, Dar es Salaam",
+                                "Tyma Mbagala Sabasaba Hospital, Dar es Salaam",
+                                "Tumaini Mission Health Centre, Dar es Salaam",
+                                "Yombo Vituka Health Centre, Dar es Salaam"))
+
+addr_geo2 <- mutate_geocode(data = addr2, location = Address, output = "latlona")
+
+View(addr_geo2)
+#mapview(addr_geo2, xcol = "lon", ycol = "lat", crs = 4269, grid = FALSE)
+
+```
+```{r}
+write.csv(addr_geo2, "Health facilities geocoding data.csv")
+
+```
+
+
+
+Geocoding outside of R and Google Alternatively, you can geocode CSV files with address data outside of R, then import the CSV with the coordinates to map the data using the read_csv() function of Package 'readr'.
+
+-   Census Bureau
+
+-   iPums Geomarker (this utility can also can add Census data to your CSV)
+
+```{r}
+data <- addr_geo2 %>% st_as_sf(coords = c("lon", "lat"), crs = 4326)
+
+```
+
+
+```{r}
+ggplot() + geom_sf(data = tz %>% filter(Region_Nam %in% c("Dar-es-salaam") & NewDist20 %in% c("Ilala", "Temeke"))) + geom_sf(data = data, aes(geometry = geometry))
+
+```
+
