@@ -18,7 +18,7 @@ library(sf)
 
 ```{r}
 
-register_google(key = "AIzaSyC3AxkOfxkrwFvVQZUi2yCcl_gpsO8XjtI", write = TRUE)
+register_google(key = "your_api_key", write = TRUE)
 
 ```
 
