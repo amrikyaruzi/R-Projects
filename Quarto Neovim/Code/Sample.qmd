@@ -1,0 +1,85 @@
+
+---
+title: "Sample Knitr Document"
+
+project:
+  type: default
+  output-dir: Output
+
+execute:
+  cache: true
+  warn: false
+  message: false
+
+format:
+  html:
+    fig-width: 7
+    fig-height: 5
+  
+  pdf:
+    documentclass: article
+    papersize: a4
+    fig-width: 6
+    fig-height: 4
+---
+
+
+
+
+```{r}
+#| echo: true
+#| output: false
+
+library(tidyverse)    
+library(here)
+library(gt)
+```
+
+
+```{r}
+#| include: false
+
+here("./Quarto Neovim/Code") %>% list.files()
+```
+
+
+
+```{julia}
+#| output: false
+
+using DataFrames
+using CSV
+using Chain
+```
+
+
+
+```{julia}
+#| output: false
+data = CSV.read("E:/Documents/Work/Projects/2. Work Related/PARTOMA/Data/BIRTH_OUTCOMES_-_all_versions_-_labels_-_2023-11-25-07-49-25.csv", DataFrame)
+
+```
+
+
+
+```{julia}
+first(data, 5)
+last(data, 5)
+
+```
+
+
+```{python}
+#| warn: false
+import pandas as pd
+data_py = pd.read_csv("E:/Documents/Work/Projects/2. Work Related/PARTOMA/Data/BIRTH_OUTCOMES_-_all_versions_-_labels_-_2023-11-25-07-49-25.csv", encoding = "unicode_escape")
+
+
+data_py.iloc[:, :5]
+data_py.head(5)
+data_py.tail(5)
+```
+
+
+
+
